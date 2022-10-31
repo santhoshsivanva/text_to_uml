@@ -5,6 +5,8 @@ from pyUML import Graph, UMLClass
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+
 lemmatizer = WordNetLemmatizer()
 
 def get_all_tagged(text):
