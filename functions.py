@@ -5,6 +5,7 @@ from pyUML import Graph, UMLClass
 import subprocess
 
 subprocess.Popen(['sudo apt-get install graphviz'], shell=True)
+subprocess.Popen(['brew install gprof2dot'], shell=True)
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
