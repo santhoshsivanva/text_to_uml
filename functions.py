@@ -3,6 +3,8 @@ import random
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 from pyUML import Graph, UMLClass
 
+nltk.download('punkt')
+
 lemmatizer = WordNetLemmatizer()
 
 def get_all_tagged(text):
