@@ -1,7 +1,6 @@
 import streamlit as st
 from functions import *
 import os
-os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin' # to be removed in production
 
 text = st.text_area("Hello World", height=300)
 b = st.button("Generate")
