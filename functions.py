@@ -4,6 +4,7 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 from pyUML import Graph, UMLClass
 
 nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 lemmatizer = WordNetLemmatizer()
 
