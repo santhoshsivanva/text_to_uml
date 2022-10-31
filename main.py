@@ -2,7 +2,7 @@ import streamlit as st
 from functions import *
 import os
 
-text = st.text_area("Hello World", height=300)
+text = st.text_area("Write your specification here", height=200)
 b = st.button("Generate")
 
 if b:
