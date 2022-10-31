@@ -2,10 +2,12 @@ import streamlit as st
 from functions import *
 import os
 
-text = st.text_area("Write your specification here", height=200)
-b = st.button("Generate")
+st.title("Text to UML Diagrams Generator")
 
-if b:
+text = st.text_area("Write your specification here", height=200)
+btn = st.button("Generate")
+
+if btn:
     if not text.endswith("."): text += "." 
     uml, inheritance, relationship, object, object_inh = text_to_uml(text)
     graph = graph_from_uml(uml, inheritance, relationship, object, object_inh)
