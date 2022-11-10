@@ -11,6 +11,7 @@ nltk.download('omw-1.4')
 lemmatizer = WordNetLemmatizer()
 
 def get_all_tagged(text):
+    if not text.endswith("."): text += "."
     text_token = nltk.sent_tokenize(text)
     all_tagged = []
     for token in text_token:
