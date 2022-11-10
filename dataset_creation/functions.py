@@ -26,12 +26,11 @@ def get_entities_attributes(all_tagged):
     lemmatizer = WordNetLemmatizer()
     for tagged in all_tagged:
         for i, word in enumerate(tagged):
-            word_lem = lemmatizer.lemmatize(word[0])
+            word_lem = lemmatizer.lemmatize(word[0]).lower()
             if word[1] in noun_or_gerund:
-                if i > len(tagged):
-                    if tagged[i+1][1] in noun_or_gerund:
-                        next_word_lem = lemmatizer.lemmatize(tagged[i+1][0])
-                        entities.add(word_lem + "_" + next_word_lem)
+                if tagged[i+1][1] in noun_or_gerund:
+                    next_word_lem = lemmatizer.lemmatize(tagged[i+1][0])
+                    entities.add(word_lem + "_" + next_word_lem)
                 elif tagged[i-1][1] in noun_or_gerund:
                     continue
                 elif word_lem in business_env:
@@ -123,23 +122,20 @@ def get_object(all_tagged,list,index):
         if sub!='none' : break
 
         if list[index+i][1] in ['NN','NNS','NNP','NNPS']:
-            if i+1 > len(list):
-                if list[index+i+1][1] not in ['NN','NNS','NNP','NNPS']:
-                    sub=list[index+i][0]
-                else :
-                    sub=list[index+i][0]+'_'+list[index+i+1][0]
+            if list[index+i+1][1] not in ['NN','NNS','NNP','NNPS']:
+                sub=list[index+i][0]
+            else :
+                sub=list[index+i][0]+'_'+list[index+i+1][0]
 
         elif list[index+i][1] == 'DT':
-            if i+1 > len(list):
-                if list[index+i+1][1] in ['NN','NNS','NNP','NNPS'] and list[index+i+2][1] in ['NN','NNS','NNP','NNPS'] :
-                    sub=list[index+i+1][0]+'_'+list[index+i+2][0]
-                elif list[index+i+1][1] in ['NN','NNS','NNP','NNPS']:
-                    sub=list[index+i+1][0]
+            if list[index+i+1][1] in ['NN','NNS','NNP','NNPS'] and list[index+i+2][1] in ['NN','NNS','NNP','NNPS'] :
+                sub=list[index+i+1][0]+'_'+list[index+i+2][0]
+            elif list[index+i+1][1] in ['NN','NNS','NNP','NNPS']:
+                sub=list[index+i+1][0]
     entities,_ =get_entities_attributes(all_tagged)
     if lemmatizer.lemmatize(obj) in entities and lemmatizer.lemmatize(sub) in entities:
         return obj,sub
-    else:
-        return 'none','none'
+    return 'none','none'
 
 def get_relations(all_tagged):
     stemmer = PorterStemmer()
@@ -159,38 +155,46 @@ def get_relations(all_tagged):
                     if obj!='none' and sub!='none':
                         inheritance.append(word[0]+' '+tagged[i+1][0])
                         object_inh.append((obj,sub))
+                # inheritance.append(word[0]+' '+tagged[i+1][0])
+                # object_inh.append(get_object(all_tagged,tagged,i))
 
             elif word[1] in ['VB','VBD','VBG','VBN','VBP','VBZ'] and word[0] not in verb_not_rel:
-                # check if next word is a preposition conjunction
-                if i+1 > len(tagged):
-                    if tagged[i+1][0] in ['by','in','on','to'] :
-                        # A verb followed by a preposition  can indicate a relationship type
+                # check if next word is a preposition conjunction 
+                
+                if tagged[i+1][0] in ['by','in','on','to'] :
+                    # A verb followed by a preposition  can indicate a relationship type
                         obj,sub=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0]+' '+tagged[i+1][0])
                             object.append((obj,sub))
+                    # relationship.append(word[0]+' '+tagged[i+1][0])
+                    # object.append(get_object(all_tagged,tagged,i))
 
-                    # if a verb is in the following list {include, involve, consists of, contain, comprise, divided to, embrace},
-                    #  this indicate a relationship
-                    elif word_stem in verb1 :
+                # if a verb is in the following list {include, involve, consists of, contain, comprise, divided to, embrace},
+                #  this indicate a relationship
+                elif word_stem in verb1 : 
                         obj,sub=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0])
-                            object.append((obj,sub))
-    
-                    elif word_stem+' '+tagged[i+1][0] in verb2 :
+                            object.append((obj,sub))   
+                    #relationship.append(word[0])
+                elif word_stem+' '+tagged[i+1][0] in verb2 :
                         obj,sub=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0]+' '+tagged[i+1][0])
                             object.append((obj,sub))
+                    # relationship.append(word[0]+' '+tagged[i+1][0])
+                    # object.append(get_object(all_tagged,tagged,i))
 
-                    # check if verb is transitive
-                    elif tagged[i+1][1] in ['NN','NNS'] or tagged[i+1][1]=='DT' and tagged[i+2][1]in ['NN','NNS']:
-                        #A transitive verb can indicate relationship type
+                # check if verb is transitive
+                elif tagged[i+1][1] in ['NN','NNS'] or tagged[i+1][1]=='DT' and tagged[i+2][1]in ['NN','NNS']:
+                    #A transitive verb can indicate relationship type
                         obj,sub=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0])
-                            object.append((obj,sub))
+                            object.append((obj,sub)) 
+                    # relationship.append(word[0])
+                    # object.append(get_object(all_tagged,tagged,i))
 
     return inheritance, relationship, object, object_inh
 
@@ -245,3 +249,4 @@ def graph_from_uml(uml, inheritance, relationship, object, object_inh):
         graph.add_class(UMLClass(entity, attributes={att: get_attribute_type(att) for att in uml[entity]}))
 
     return graph
+    
