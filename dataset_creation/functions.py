@@ -247,7 +247,8 @@ def graph_from_uml(uml, inheritance, relationship, object, object_inh):
         graph.add_implementation(class1, class2)
 
     for entity in uml.keys():
-        graph.add_class(UMLClass(entity, attributes={att: get_attribute_type(att) for att in uml[entity]}))
+        print(uml[entity])
+        graph.add_class(UMLClass(entity, attributes={att[0]: att[1] for att in uml[entity] if len(uml[entity]) > 0}))
 
     return graph
     
