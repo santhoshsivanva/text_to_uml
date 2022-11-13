@@ -167,7 +167,7 @@ def get_inheritances(text):
             skip_next = False
             continue
 
-        if token.text == "is" and doc[i+1].text in ["a","an"] :
+        if token.text in ["is","are"] and doc[i+1].text in ["a","an"] :
             sub,obj=get_subject_object_inh(text)
             if obj!='none' and sub!='none':
                 inheritance.append(token.text+' '+doc[i+1].text)
