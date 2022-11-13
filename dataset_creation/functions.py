@@ -106,36 +106,36 @@ def get_object(all_tagged,list,index):
 
     for i in range(1,index+1):
 
-        if obj!='none' : break
+        if sub!='none' : break
 
         if list[index-i][1] in ['NN','NNS','NNP','NNPS']:
             if list[index-i-1][1] not in ['NN','NNS','NNP','NNPS']:
-                obj=list[index-i][0]
+                sub=list[index-i][0]
             else :
-                obj=list[index-i-1][0]+'_'+list[index-i][0]
+                sub=list[index-i-1][0]+'_'+list[index-i][0]
         elif list[index-i][1] == 'MD':
             if list[index-i-1][1] in ['NN','NNS','NNP','NNPS'] and list[index-i-2][1] in ['NN','NNS','NNP','NNPS'] :
-                obj=list[index-i-2][0]+'_'+list[index-i-1][0]
+                sub=list[index-i-2][0]+'_'+list[index-i-1][0]
             elif list[index-i-1][1] in ['NN','NNS','NNP','NNPS']:
-                obj=list[index-i-1][0]
+                sub=list[index-i-1][0]
 
     for i in range(1,len(list)-index):
-        if sub!='none' : break
+        if obj!='none' : break
 
         if list[index+i][1] in ['NN','NNS','NNP','NNPS']:
             if list[index+i+1][1] not in ['NN','NNS','NNP','NNPS']:
-                sub=list[index+i][0]
+                obj=list[index+i][0]
             else :
-                sub=list[index+i][0]+'_'+list[index+i+1][0]
+                obj=list[index+i][0]+'_'+list[index+i+1][0]
 
         elif list[index+i][1] == 'DT':
             if list[index+i+1][1] in ['NN','NNS','NNP','NNPS'] and list[index+i+2][1] in ['NN','NNS','NNP','NNPS'] :
-                sub=list[index+i+1][0]+'_'+list[index+i+2][0]
+                obj=list[index+i+1][0]+'_'+list[index+i+2][0]
             elif list[index+i+1][1] in ['NN','NNS','NNP','NNPS']:
-                sub=list[index+i+1][0]
+                obj=list[index+i+1][0]
     entities,_ =get_entities_attributes(all_tagged)
     if lemmatizer.lemmatize(obj) in entities and lemmatizer.lemmatize(sub) in entities:
-        return obj,sub
+        return sub,obj
     return 'none','none'
 
 def get_relations(all_tagged):
@@ -150,52 +150,44 @@ def get_relations(all_tagged):
     for tagged in all_tagged:
         for i, word in enumerate(tagged):
             word_stem = stemmer.stem(word[0])
-            # check if word is a verb
             if word[0] == "is" and (tagged[i+1][0] == "a" or tagged[i+1][0] == "an"):
-                    obj,sub=get_object(all_tagged,tagged,i)
+                    sub,obj=get_object(all_tagged,tagged,i)
                     if obj!='none' and sub!='none':
                         inheritance.append(word[0]+' '+tagged[i+1][0])
-                        object_inh.append((obj,sub))
-                # inheritance.append(word[0]+' '+tagged[i+1][0])
-                # object_inh.append(get_object(all_tagged,tagged,i))
+                        object_inh.append((sub,obj))
 
+            # check if word is a verb
             elif word[1] in ['VB','VBD','VBG','VBN','VBP','VBZ'] and word[0] not in verb_not_rel:
                 # check if next word is a preposition conjunction 
                 
                 if tagged[i+1][0] in ['by','in','on','to'] :
                     # A verb followed by a preposition  can indicate a relationship type
-                        obj,sub=get_object(all_tagged,tagged,i)
+                        sub,obj=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0]+' '+tagged[i+1][0])
-                            object.append((obj,sub))
-                    # relationship.append(word[0]+' '+tagged[i+1][0])
-                    # object.append(get_object(all_tagged,tagged,i))
+                            object.append((sub,obj))
 
                 # if a verb is in the following list {include, involve, consists of, contain, comprise, divided to, embrace},
                 #  this indicate a relationship
                 elif word_stem in verb1 : 
-                        obj,sub=get_object(all_tagged,tagged,i)
+                        sub,obj=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0])
-                            object.append((obj,sub))   
-                    #relationship.append(word[0])
+                            object.append((sub,obj))   
+
                 elif word_stem+' '+tagged[i+1][0] in verb2 :
-                        obj,sub=get_object(all_tagged,tagged,i)
+                        sub,obj=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0]+' '+tagged[i+1][0])
-                            object.append((obj,sub))
-                    # relationship.append(word[0]+' '+tagged[i+1][0])
-                    # object.append(get_object(all_tagged,tagged,i))
+                            object.append((sub,obj))
 
                 # check if verb is transitive
                 elif tagged[i+1][1] in ['NN','NNS'] or tagged[i+1][1]=='DT' and tagged[i+2][1]in ['NN','NNS']:
                     #A transitive verb can indicate relationship type
-                        obj,sub=get_object(all_tagged,tagged,i)
+                        sub,obj=get_object(all_tagged,tagged,i)
                         if obj!='none' and sub!='none':
                             relationship.append(word[0])
-                            object.append((obj,sub)) 
-                    # relationship.append(word[0])
-                    # object.append(get_object(all_tagged,tagged,i))
+                            object.append((sub,obj)) 
 
     return inheritance, relationship, object, object_inh
 
