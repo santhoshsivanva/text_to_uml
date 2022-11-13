@@ -90,7 +90,6 @@ def get_relations(text):
                         subjects_objects.append((sub,obj))
                         skip_next = True # Skip the next token
 
-
             # if a verb is in the following list {include, involve, consists of, contain, comprise, divided to, embrace},
             #  this indicate a relations
             elif stemmer.stem(token.text) in verb1 : 
@@ -129,11 +128,52 @@ def get_relations(text):
                         relations.append(token.text)
                         subjects_objects.append((sub,obj))
                         skip_next = True
-
     return relations , subjects_objects
 
+def get_subject_object_inh(text):
+    obj='none'
+    sub='none'
+    doc = nlp(text)
+    for i,token in enumerate(doc):
+        if(sub=='none'):
+            if "subj" in token.dep_  and token.head.text == "is": 
+                if doc[i-1].dep_ == "compound":
+                  sub= doc[i-1].lemma_ +'_'+ token.lemma_
+                elif  "subj" in token.dep_ :
+                  sub= token.lemma_
+                    
+        if(obj=='none'):
+            if token.dep_ == 'attr' and token.head.text == "is":
+                if doc[i-1].dep_ == "compound":
+                    obj= doc[i-1].lemma_ + '_' + token.lemma_
+                elif  "attr" in token.dep_ :
+                    obj= token.lemma_
+    entities = get_classes(text)
+    if obj in entities and sub in entities:
+         return sub,obj
+    return 'none','none'
+    
+    
 def get_inheritances(text):
-    pass
+    if not text.endswith("."): text += "." # Add a dot at the end of the sentence
+    inheritance = []
+    subjects_objects_inh =[]
+    doc = nlp(text)
+    skip_next = False
+
+    for i, token in enumerate(doc):
+        # Check if we need to skip the token
+        if skip_next:
+            skip_next = False
+            continue
+
+        if token.text == "is" and doc[i+1].text in ["a","an"] :
+            sub,obj=get_subject_object_inh(text)
+            if obj!='none' and sub!='none':
+                inheritance.append(token.text+' '+doc[i+1].text)
+                subjects_objects_inh.append((sub,obj))
+                skip_next = True # Skip the next token
+    return inheritance , subjects_objects_inh
 
 text = "bottle opener"
 classes = get_classes(text)
