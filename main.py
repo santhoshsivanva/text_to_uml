@@ -1,5 +1,5 @@
 import streamlit as st
-from dataset_creation.functions import *
+from functions import *
 import os
 
 # to be removed in production
