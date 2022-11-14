@@ -133,9 +133,10 @@ def get_object(all_tagged,list,index):
                 obj=list[index+i+1][0]+'_'+list[index+i+2][0]
             elif list[index+i+1][1] in ['NN','NNS','NNP','NNPS']:
                 obj=list[index+i+1][0]
+
     entities,_ =get_entities_attributes(all_tagged)
     if lemmatizer.lemmatize(obj) in entities and lemmatizer.lemmatize(sub) in entities:
-        return sub,obj
+        return obj,sub
     return 'none','none'
 
 def get_relations(all_tagged):
@@ -150,7 +151,7 @@ def get_relations(all_tagged):
     for tagged in all_tagged:
         for i, word in enumerate(tagged):
             word_stem = stemmer.stem(word[0])
-            if word[0] == "is" and (tagged[i+1][0] == "a" or tagged[i+1][0] == "an"):
+            if word[0] in ["is","are"] and tagged[i+1][0] in ["an","a"]:
                     sub,obj=get_object(all_tagged,tagged,i)
                     if obj!='none' and sub!='none':
                         inheritance.append(word[0]+' '+tagged[i+1][0])
@@ -242,4 +243,3 @@ def graph_from_uml(uml, inheritance, relationship, object, object_inh):
         graph.add_class(UMLClass(entity, attributes={att[0]: att[1] for att in uml[entity] if len(uml[entity]) > 0}))
 
     return graph
-    
