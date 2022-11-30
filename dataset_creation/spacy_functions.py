@@ -38,7 +38,46 @@ def get_classes(text):
     return classes
 
 def get_attributes(text):
-    pass
+    doc = nlp(text)
+    attributes_noun_phrase_main = set()
+    relationship_attributes = set()
+    concept_attributes = set()
+    specific_indicators = {"type", "number", "date", "reference","no","code","volume","birth","id","address","name"}
+    for i, token in enumerate(doc):
+        # #A1
+        # if token.tag_== "JJ":
+        #     attributes_noun_phrase_main.add(token.lemma_)
+        # #A2
+        # if token.tag_ == "RB":
+        #     if doc[i+1].pos_ == "VERB" and doc[i+1].pos_ != "ADJECTIVE":
+        #         relationship_attributes.add(token.lemma_)
+        #A3
+        if token.tag_ == "POS":
+            concept_attributes.add(doc[i+1].lemma_)
+            if doc[i-2] == "and":
+                concept_attributes.add(doc[i-3].lemma_)
+        #A4
+        if token.text == "of":
+            concept_attributes.add(doc[i-1].lemma_)
+        if token.tag_ == "NN" or token.tag_ == "NNS":
+            if doc[i-1].tag_ == "IN":
+                if doc[i-2].pos_ == "VERB":
+                    concept_attributes.add(token.lemma_)
+                    if i < len(doc):
+                        if doc[i+1] == "and":
+                            concept_attributes.add(doc[i+2].lemma_)
+        #A5
+        if token.text == "have" and doc[i-1].text == "to":
+            concept_attributes.add(doc[i+1].lemma_)
+        #A6
+        if token in specific_indicators:
+            concept_attributes.add(token.lemma_)
+            if i < len(doc):
+                if doc[i+1].text == "," and (doc[i+2].tag_ == "NN" or "NNS"):
+                    concept_attributes.add(doc[i+2].lemma_)
+                elif doc[i+1].tag_ == "NN" or "NNS":
+                    concept_attributes.add(doc[i+1].lemma_)
+    return concept_attributes #, relationship_attributes,attributes_noun_phrase_main
 
 def get_subject_object(text):
     obj='none'
