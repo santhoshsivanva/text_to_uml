@@ -1,4 +1,6 @@
 import spacy
+import nltk
+from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.stem.porter import *
 nlp = spacy.load("en_core_web_sm")
 
@@ -214,28 +216,36 @@ def get_inheritances(text):
                 skip_next = True # Skip the next token
     return inheritance , subjects_objects_inh
 
-text = "bottle opener"
-classes = get_classes(text)
-print(classes)
-text = "a bottle can be oppened using a bottle opener"
-classes = get_classes(text)
-print(classes)
-print(get_relations(text))
-text = "bottle opener is used to open bottles"
-classes = get_classes(text)
-print(classes)
-print(get_relations(text))
-text = "question answering"
-classes = get_classes(text)
-print(classes)
-text = "covering letter"
-classes = get_classes(text)
-print(classes)
-text = "students write covering letter to apply for a job"
-classes = get_classes(text)
-print(classes)
-print(get_relations(text))
-text = "Every day, the mailman delivers registered mail in a geographical area assigned to him. The inhabitants are also associated with a geographical area. There are two types of registered mail: letters and parcels. As several letter carriers can intervene in the same area, we want, for each registered letter, the letter carrier who delivered it, in addition to the addressee"
-classes = get_classes(text)
-print(classes)
-print(get_relations(text))
+def text_to_uml(text):
+    uml = {}
+    entities = get_classes(text)
+    relations = get_relations(text)
+    attributes = get_attributes(text)
+    for entity in entities:
+        uml[entity] = []
+    for attribute in attributes:
+        entity = get_entity(text, attribute, entities)
+        if entity:
+            uml[entity].append((attribute, get_attribute_type(attribute)))
+    inheritance, relationship, object, object_inh = get_relations(text)
+    return uml, inheritance, relationship, object, object_inh
+
+def get_attribute_type(attribute):
+    ints = ["no", "number", "num", "nb", "age"]
+    for i in ints:
+        if i in attribute:
+            return "int"
+    if "date" in attribute:
+      return "date"
+    else:
+      return "string"
+
+def get_entity(text, attribute, entities):
+    lemmatizer = WordNetLemmatizer()
+    words = nltk.word_tokenize(text)
+    i = words.index(attribute)
+    while i >= 0:
+        word_lem = lemmatizer.lemmatize(words[i])
+        if word_lem in entities:
+            return word_lem
+        i -= 1
