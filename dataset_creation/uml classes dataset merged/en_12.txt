@@ -1,0 +1,1 @@
+Model a LAN in which we find two kinds of printers: ASCII printers can only print ASCII documents. PostScript printers can print either ASCII or Postscript documents. The documents are sent around as content of packets.
