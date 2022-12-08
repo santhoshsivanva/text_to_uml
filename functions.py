@@ -228,9 +228,10 @@ def graph_from_uml(uml, inheritance, relationship, object, object_inh):
         graph.add_class(class1)
         class2 = UMLClass(lemmatizer.lemmatize(obj[1]))
         graph.add_class(class1)
-        c1 = "0..*"
-        c2 = "0..*"
-        graph.add_association(class1, class2, label=rel, multiplicity_parent=c1, multiplicity_child=c2)
+        # c1 = "0..*"
+        # c2 = "0..*"
+        graph.add_association(class2, class1, label=rel)
+        # graph.add_association(class1, class2, label=rel, multiplicity_parent=c1, multiplicity_child=c2)
 
     for rel, obj in zip(inheritance, object_inh):
         class1 = UMLClass(obj[0])
