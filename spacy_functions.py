@@ -1,6 +1,6 @@
 import spacy
 import nltk
-from nltk.stem import WordNetLemmatizer, PorterStemmer
+from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import *
 import random
 from pyUML import Graph, UMLClass
