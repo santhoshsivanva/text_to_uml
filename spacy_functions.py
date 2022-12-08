@@ -5,7 +5,9 @@ from nltk.stem.porter import *
 import random
 from pyUML import Graph, UMLClass
 
-nltk.download('en_core_web_sm')
+import subprocess
+subprocess.run("python -m spacy download en_core_web_sm".split())
+
 nlp = spacy.load("en_core_web_sm")
 
 classes = set()

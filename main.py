@@ -13,7 +13,6 @@ btn = st.button("Generate")
 if btn:
     if not text.endswith("."): text += "." 
     uml, relationship, object = text_to_uml(text)
-    print(uml, relationship, object)
     graph = graph_from_uml(uml, relationship, object)
     image_url = get_random_id(5) + ".png"
     graph.write_png(image_url)
