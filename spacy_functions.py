@@ -4,6 +4,8 @@ from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import *
 import random
 from pyUML import Graph, UMLClass
+
+nltk.download('en_core_web_sm')
 nlp = spacy.load("en_core_web_sm")
 
 classes = set()
