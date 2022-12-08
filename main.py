@@ -1,5 +1,5 @@
 import streamlit as st
-from functions import *
+from spacy_functions import *
 import os
 
 # to be removed in production
@@ -12,8 +12,9 @@ btn = st.button("Generate")
 
 if btn:
     if not text.endswith("."): text += "." 
-    uml, inheritance, relationship, object, object_inh = text_to_uml(text)
-    graph = graph_from_uml(uml, inheritance, relationship, object, object_inh)
+    uml, relationship, object = text_to_uml(text)
+    print(uml, relationship, object)
+    graph = graph_from_uml(uml, relationship, object)
     image_url = get_random_id(5) + ".png"
     graph.write_png(image_url)
     st.image(image_url)

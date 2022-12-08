@@ -2,11 +2,16 @@ import spacy
 import nltk
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.stem.porter import *
+import random
+from pyUML import Graph, UMLClass
 nlp = spacy.load("en_core_web_sm")
 
+classes = set()
+
 def get_classes(text):
-    if not text.endswith("."): text += "."
+    global classes
     classes = set()
+    if not text.endswith("."): text += "."
     business_env = ["database", "record", "system", "information", "organization", "detail", "website", "computer"]
     doc = nlp(text)
     skip_next = False
@@ -40,6 +45,7 @@ def get_classes(text):
     return classes
 
 def get_attributes(text):
+    global classes
     doc = nlp(text)
     # attributes_noun_phrase_main = set()
     # relationship_attributes = set()
@@ -56,120 +62,128 @@ def get_attributes(text):
         #A3
         if token.tag_ == "POS":
             concept_attributes.add(doc[i+1].lemma_)
+            classes.discard(doc[i+1].lemma_)
             if doc[i-2] == "and":
                 concept_attributes.add(doc[i-3].lemma_)
+                classes.discard(doc[i-3].lemma_)
         #A4
         if token.text == "of":
             concept_attributes.add(doc[i-1].lemma_)
+            classes.discard(doc[i-1].lemma_)
         if token.tag_ == "NN" or token.tag_ == "NNS":
             if doc[i-1].tag_ == "IN":
                 if doc[i-2].pos_ == "VERB":
                     concept_attributes.add(token.lemma_)
+                    classes.discard(token.lemma_)
                     if i < len(doc):
-                        if doc[i+1] == "and":
+                        if doc[i+1].text == "and":
                             concept_attributes.add(doc[i+2].lemma_)
+                            classes.discard(doc[i+2].lemma_)
         #A5
         if token.text == "have" and doc[i-1].text == "to":
             concept_attributes.add(doc[i+1].lemma_)
+            classes.discard(doc[i+1].lemma_)
         #A6
         if token in specific_indicators:
             concept_attributes.add(token.lemma_)
+            classes.discard(token.lemma_)
             if i < len(doc):
                 if doc[i+1].text == "," and (doc[i+2].tag_ == "NN" or "NNS"):
                     concept_attributes.add(doc[i+2].lemma_)
+                    classes.discard(doc[i+2].lemma_)
                 elif doc[i+1].tag_ == "NN" or "NNS":
                     concept_attributes.add(doc[i+1].lemma_)
+                    classes.discard(doc[i+1].lemma_)
     return concept_attributes #, relationship_attributes,attributes_noun_phrase_main
 
-def get_subject_object(text):
+def get_subject_object(text,verb,index):
+    # dependency markers for subjects
+    SUBJECTS = {"nsubj", "nsubjpass", "csubj", "csubjpass", "expl"}
+    # dependency markers for objects
+    OBJECTS = {"dobj","dative", "attr", "oprd"}
     obj='none'
     sub='none'
     doc = nlp(text)
-    for i,token in enumerate(doc):
-        if(sub=='none'):
-            if "subj" in token.dep_  and token.head.pos_ == "VERB": 
-                if doc[i-1].dep_ == "compound":
-                  sub= doc[i-1].lemma_ +'_'+ token.lemma_
-                elif  "subj" in token.dep_ :
-                  sub= token.lemma_
-                    
-        if(obj=='none'):
-            if "dobj" in token.dep_ and token.head.pos_ == "VERB":
-                if doc[i-1].dep_ == "compound":
-                    obj= doc[i-1].lemma_ + '_' + token.lemma_
-                elif  "dobj" in token.dep_ :
-                    obj= token.lemma_
+    for i in range(index-1,-1,-1):
+        if doc[i].dep_ in SUBJECTS and doc[i].head.text == verb: 
+            if doc[i-1].dep_ == "compound" and doc[i-2].dep_ == "compound":
+                sub= doc[i-2].lemma_ +''+ doc[i-1].lemma +''+ doc[i].lemma
+                break
+            elif doc[i-1].dep_ == "compound":
+                sub= doc[i-1].lemma_ +''+ doc[i].lemma 
+                break
+            elif  doc[i].dep_ in SUBJECTS :
+                sub= doc[i].lemma_
+                break
+
+    for i in range(index+1,len(doc)):    
+        if doc[i].dep_ in OBJECTS and doc[i].head.text == verb:
+            if doc[i-1].dep_ == "compound" and doc[i-2].dep_ == "compound":
+                obj= doc[i-2].lemma_ +''+ doc[i-1].lemma +''+ doc[i].lemma
+                break
+            elif doc[i-1].dep_ == "compound":
+                obj=doc[i-1].lemma_+'' + doc[i].lemma 
+                break
+            elif  doc[i].dep_ in OBJECTS :
+                obj= doc[i].lemma_
+                break        
+    # if we dont find subject and object so we will take it with the help of noun chunks
+    if(obj == 'none' and sub == 'none'):
+        for i in range(1,index+1):
+            if obj!='none' : break
+            if doc[index-i].pos_ in ['NOUN','PROPN']:
+                if doc[index-i-1].dep_ != "compound":
+                    obj=doc[index-i].lemma_
+                else :
+                    obj=doc[index-i-1].lemma_ +''+doc[index-i].lemma
+            elif doc[index-i].tag_ == 'MD':
+                if doc[index-i-2].dep == "compound":
+                    obj=doc[index-i-2].lemma_+''+doc[index-i-1].lemma
+                elif doc[index-i-1].pos_ in ['NOUN','PROPN']:
+                    obj=doc[index-i-1].lemma_
+    
+        for i in range(1,len(doc)-index):
+            if sub!='none' : break
+            if doc[index+i].pos_ in ['NOUN','PROPN']:
+                if doc[index+i].dep_ != "compound":
+                    sub=doc[index+i].lemma_
+                else :
+                    sub=doc[index+i].lemma_ +''+doc[index+i+1].lemma
+
+            elif doc[index+i].pos_ in ['DET','ADJ']:
+                if doc[index+i+1].pos_ in ['NOUN','PROPN'] :
+                    if  doc[index+i+1].dep == "compound" :
+                        sub=doc[index+i+1].lemma_ +''+doc[index+i+2].lemma
+                    else :
+                        sub=doc[index+i+1].lemma_
+    # if we dont find object so we will take the pobj of the verb
+    i=index
+    while i+1<len(doc) and obj=='none':
+        if doc[i+1].dep_ =="pobj" and doc[i].head.text == verb:
+            obj=doc[i+1].lemma_
+        i+=1
     entities = get_classes(text)
     if obj in entities and sub in entities:
-         return sub,obj
+        return sub,obj
     return 'none','none'
     
 
 def get_relations(text):
     if not text.endswith("."): text += "." # Add a dot at the end of the sentence
-    relations = []
-    subjects_objects =[]
-    verb1=['include','involve','contain','comprise','embrace']
-    verb2=['consist of','divided to']
-    verb_not_rel=['described', 'identified','characterized']
+    subjects_verbs_objects =[]
+    # verb_not_rel=['described', 'identified','characterized']
+    verb_not_rel=[]
     doc = nlp(text)
-    stemmer = PorterStemmer()
-    skip_next = False
-    for i, token in enumerate(doc):
-        # Check if we need to skip the token
-        if skip_next:
-            skip_next = False
-            continue
+    relationship = []
+    objects = []
+    for i,token in enumerate(doc):
         # Check if the token is a verb
         if token.pos_ == "VERB" and token.text not in verb_not_rel:
-            # check if next word is a preposition conjunction 
-            if doc[i+1].text in ['by','in','on','to'] :
-                # A verb followed by a preposition  can indicate a relations type
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text+' '+doc[i+1].text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True # Skip the next token
-
-            # if a verb is in the following list {include, involve, consists of, contain, comprise, divided to, embrace},
-            #  this indicate a relations
-            elif stemmer.stem(token.text) in verb1 : 
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True # Skip the next token   
-
-            elif stemmer.stem(token.text)+' '+doc[i+1].text in verb2 :
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text+' '+doc[i+1].text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True # Skip the next token
-
-            # check if verb is transitive
-            elif doc[i+1].tag_ in ['NN','NNS'] or doc[i+1].tag_ =='DT' and doc[i+2].tag_ in ['NN','NNS']:
-                #A transitive verb can indicate relations type
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True # Skip the next token 
-
-            elif doc[i+1].pos_ == 'ADJ' and doc[i+2].pos_ in ['NOUN','PROPN'] :
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True
-
-            elif doc[i+1].pos_ == 'DET' and doc[i+2].pos_ == 'ADJ' and doc[i+3].pos_ in ['NOUN','PROPN'] :
-                    sub,obj=get_subject_object(text)
-                    if obj!='none' and sub!='none':
-                        relations.append(token.text)
-                        subjects_objects.append((sub,obj))
-                        skip_next = True
-    return relations , subjects_objects
+            sub,obj=get_subject_object(text,token.text,i)
+            subjects_verbs_objects.append((sub,token.text,obj))
+            relationship.append(token.text)
+            objects.append((sub, obj))
+    return relationship, objects
 
 def get_subject_object_inh(text):
     obj='none'
@@ -219,7 +233,7 @@ def get_inheritances(text):
 def text_to_uml(text):
     uml = {}
     entities = get_classes(text)
-    relations = get_relations(text)
+    # relations = get_relations(text)
     attributes = get_attributes(text)
     for entity in entities:
         uml[entity] = []
@@ -227,8 +241,9 @@ def text_to_uml(text):
         entity = get_entity(text, attribute, entities)
         if entity:
             uml[entity].append((attribute, get_attribute_type(attribute)))
-    inheritance, relationship, object, object_inh = get_relations(text)
-    return uml, inheritance, relationship, object, object_inh
+
+    relationship, object = get_relations(text)
+    return uml, relationship, object
 
 def get_attribute_type(attribute):
     ints = ["no", "number", "num", "nb", "age"]
@@ -243,9 +258,41 @@ def get_attribute_type(attribute):
 def get_entity(text, attribute, entities):
     lemmatizer = WordNetLemmatizer()
     words = nltk.word_tokenize(text)
-    i = words.index(attribute)
+    words_lem = []
+    for word in words:
+        words_lem.append(lemmatizer.lemmatize(word))
+    i = words_lem.index(attribute)
     while i >= 0:
         word_lem = lemmatizer.lemmatize(words[i])
         if word_lem in entities:
             return word_lem
         i -= 1
+
+chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+def get_random_id(length):
+    return ''.join((random.choice(chars) for _ in range(length)))
+
+def graph_from_uml(uml, relationship, object):
+    graph = Graph('pyUML')
+    for rel, obj in zip(relationship, object):
+        lemmatizer = WordNetLemmatizer()
+        class1 = UMLClass(lemmatizer.lemmatize(obj[0]))
+        graph.add_class(class1)
+        class2 = UMLClass(lemmatizer.lemmatize(obj[1]))
+        graph.add_class(class1)
+        # c1 = "0..*"
+        # c2 = "0..*"
+        graph.add_association(class1, class2, label=rel)
+        # graph.add_association(class1, class2, label=rel, multiplicity_parent=c1, multiplicity_child=c2)
+
+    # for rel, obj in zip(inheritance, object_inh):
+    #     class1 = UMLClass(obj[0])
+    #     graph.add_class(class1)
+    #     class2 = UMLClass(obj[1])
+    #     graph.add_class(class1)
+    #     graph.add_implementation(class1, class2)
+
+    for entity in uml.keys():
+        graph.add_class(UMLClass(entity, attributes={att[0]: att[1] for att in uml[entity] if len(uml[entity]) > 0}))
+
+    return graph
