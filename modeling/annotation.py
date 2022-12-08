@@ -27,6 +27,7 @@ def doccano_ner_to_bert(json_var):
                 bert_labels.append(word_label_dict[word.text])
             else:
                 bert_labels.append("O")
+
         texts.append(text)
         bert_labels = " ".join(bert_labels)
         labelss.append(bert_labels)
