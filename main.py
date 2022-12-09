@@ -12,8 +12,8 @@ btn = st.button("Generate")
 
 if btn:
     if not text.endswith("."): text += "." 
-    uml, relationship, object = text_to_uml(text)
-    graph = graph_from_uml(uml, relationship, object)
+    uml, inheritance, relationship, object, object_inh = text_to_uml(text)
+    graph = graph_from_uml(uml, inheritance, relationship, object, object_inh)
     image_url = get_random_id(5) + ".png"
     graph.write_png(image_url)
     st.image(image_url)

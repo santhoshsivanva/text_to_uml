@@ -178,16 +178,25 @@ def get_relations(text):
     # verb_not_rel=['described', 'identified','characterized']
     verb_not_rel=[]
     doc = nlp(text)
+    inheritance = []
     relationship = []
     objects = []
-    for i,token in enumerate(doc):
+    object_inh = []
+    for i, token in enumerate(doc):
+        # check for inheritance
+        if token.text == "is" and doc[i+1].text in ["an", "a"] or token.text == "are":
+            sub, obj = get_subject_object(text, token.text, i)
+            if obj != 'none' and sub != 'none':
+                inheritance.append(token.text+' '+doc[i+1].text)
+                object_inh.append((sub, obj))
+
         # Check if the token is a verb
         if token.pos_ == "VERB" and token.text not in verb_not_rel:
             sub,obj=get_subject_object(text,token.text,i)
             subjects_verbs_objects.append((sub,token.text,obj))
             relationship.append(token.text)
             objects.append((sub, obj))
-    return relationship, objects
+    return inheritance, relationship, objects, object_inh
 
 def get_subject_object_inh(text):
     obj='none'
@@ -237,7 +246,6 @@ def get_inheritances(text):
 def text_to_uml(text):
     uml = {}
     entities = get_classes(text)
-    # relations = get_relations(text)
     attributes = get_attributes(text)
     for entity in entities:
         uml[entity] = []
@@ -246,8 +254,8 @@ def text_to_uml(text):
         if entity:
             uml[entity].append((attribute, get_attribute_type(attribute)))
 
-    relationship, object = get_relations(text)
-    return uml, relationship, object
+    inheritance, relationship, object, object_inh = get_relations(text)
+    return uml, inheritance, relationship, object, object_inh
 
 def get_attribute_type(attribute):
     ints = ["no", "number", "num", "nb", "age"]
@@ -276,7 +284,7 @@ chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 def get_random_id(length):
     return ''.join((random.choice(chars) for _ in range(length)))
 
-def graph_from_uml(uml, relationship, object):
+def graph_from_uml(uml, inheritance, relationship, object, object_inh):
     graph = Graph('pyUML')
     for rel, obj in zip(relationship, object):
         lemmatizer = WordNetLemmatizer()
@@ -289,12 +297,12 @@ def graph_from_uml(uml, relationship, object):
         graph.add_association(class1, class2, label=rel)
         # graph.add_association(class1, class2, label=rel, multiplicity_parent=c1, multiplicity_child=c2)
 
-    # for rel, obj in zip(inheritance, object_inh):
-    #     class1 = UMLClass(obj[0])
-    #     graph.add_class(class1)
-    #     class2 = UMLClass(obj[1])
-    #     graph.add_class(class1)
-    #     graph.add_implementation(class1, class2)
+    for rel, obj in zip(inheritance, object_inh):
+        class1 = UMLClass(obj[0])
+        graph.add_class(class1)
+        class2 = UMLClass(obj[1])
+        graph.add_class(class1)
+        graph.add_implementation(class1, class2)
 
     for entity in uml.keys():
         graph.add_class(UMLClass(entity, attributes={att[0]: att[1] for att in uml[entity] if len(uml[entity]) > 0}))
