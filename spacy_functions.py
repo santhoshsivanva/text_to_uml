@@ -184,7 +184,7 @@ def get_relations(text):
     object_inh = []
     for i, token in enumerate(doc):
         # check for inheritance
-        if token.text == "is" and doc[i+1].text in ["an", "a"] or token.text == "are":
+        if token.text in ["is", "are"] and doc[i+1].text in ["an", "a"]:
             sub, obj = get_subject_object(text, token.text, i)
             if obj != 'none' and sub != 'none':
                 inheritance.append(token.text+' '+doc[i+1].text)
