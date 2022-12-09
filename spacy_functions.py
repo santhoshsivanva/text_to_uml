@@ -6,7 +6,7 @@ import random
 from pyUML import Graph, UMLClass
 
 import subprocess
-subprocess.run("python -m spacy download en_core_web_sm".split())
+subprocess.run("python3 -m spacy download en_core_web_sm".split())
 
 nlp = spacy.load("en_core_web_sm")
 
