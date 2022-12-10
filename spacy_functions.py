@@ -70,10 +70,10 @@ def get_attributes(text):
             if doc[i-2] == "and":
                 concept_attributes.add(doc[i-3].lemma_)
                 classes.discard(doc[i-3].lemma_)
-        #A4
-        if token.text == "of":
-            concept_attributes.add(doc[i-1].lemma_)
-            classes.discard(doc[i-1].lemma_)
+        # #A4
+        # if token.text == "of":
+        #     concept_attributes.add(doc[i-1].lemma_)
+        #     classes.discard(doc[i-1].lemma_)
         if token.tag_ == "NN" or token.tag_ == "NNS":
             if doc[i-1].tag_ == "IN":
                 if doc[i-2].pos_ == "VERB":
@@ -83,12 +83,28 @@ def get_attributes(text):
                         if doc[i+1].text == "and":
                             concept_attributes.add(doc[i+2].lemma_)
                             classes.discard(doc[i+2].lemma_)
+        #A+
+        if token.text == "by":
+            if doc[i+1].pos_ == "PRON":
+                concept_attributes.add(doc[i+2].lemma_)
+                classes.discard(doc[i+2].lemma_)
+                list__ = test_next_attr(doc, i+2)
+                for l in list__:
+                    concept_attributes.add(l)
+                    classes.discard(l)
+            else:
+                concept_attributes.add(doc[i+1].lemma_)
+                classes.discard(doc[i+1].lemma_)
+                # list__ = test_next_attr(doc, i+2)
+                # for l in list__:
+                #     concept_attributes.add(l)
+                #     classes.discard(l)
         #A5
         if token.text == "have" and doc[i-1].text == "to":
             concept_attributes.add(doc[i+1].lemma_)
             classes.discard(doc[i+1].lemma_)
         #A6
-        if token in specific_indicators:
+        if token.text in specific_indicators:
             concept_attributes.add(token.lemma_)
             classes.discard(token.lemma_)
             if i < len(doc):
@@ -98,7 +114,38 @@ def get_attributes(text):
                 elif doc[i+1].tag_ == "NN" or "NNS":
                     concept_attributes.add(doc[i+1].lemma_)
                     classes.discard(doc[i+1].lemma_)
+        ############################################################################
+        # if token.text in concept_attributes:          
+        #     list__ = test_next_attr(doc, i+2)
+        #     for l in list__:
+        #         concept_attributes.add(l)
+        #         classes.discard(l)
     return concept_attributes #, relationship_attributes,attributes_noun_phrase_main
+
+def test_next_attr(doc,i):
+    list__ = set()
+    br = 0
+    while(br !=1):
+        if doc[i+1].text == "," or ";":
+            if doc[i+2].text == "and" and doc[i+3].pos_ == "PRON":
+                list__.add(doc[i+4].lemma_)
+            if doc[i+2].pos_ == "PRON":
+                list__.add(doc[i+3].lemma_)
+            else:
+                list__.add(doc[i+2].lemma_)
+            # if doc[i+2].pos_ != "PRON" and (doc[i+2].tag_ != "NN" or "NNS"):
+            #     br = 1
+        elif doc[i+1].text == "and":
+            if doc[i+2].pos_ == "PRON":
+                list__.add(doc[i+3].lemma_)
+            else:
+                list__.add(doc[i+2].lemma_)
+        elif doc[i+1].pos_ == "PRON":
+            list__.add(doc[i+2].lemma_)
+        if doc[i+1].text == ".":
+            br = 1
+        i = i+1
+    return list__
 
 def get_subject_object(text,verb,index):
     # dependency markers for subjects
