@@ -173,7 +173,7 @@ def get_subject_object(text,verb,index):
                 obj= doc[i-2].lemma_ +''+ doc[i-1].lemma +''+ doc[i].lemma
                 break
             elif doc[i-1].dep_ == "compound":
-                obj=doc[i-1].lemma_+'' + doc[i].lemma 
+                obj=doc[i-1].lemma_+'' + doc[i].lemma_
                 break
             elif  doc[i].dep_ in OBJECTS :
                 obj= doc[i].lemma_
