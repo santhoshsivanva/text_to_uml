@@ -136,7 +136,7 @@ def get_object(all_tagged,list,index):
 
     entities,_ =get_entities_attributes(all_tagged)
     if lemmatizer.lemmatize(obj) in entities and lemmatizer.lemmatize(sub) in entities:
-        return obj,sub
+        return sub,obj
     return 'none','none'
 
 def get_relations(all_tagged):
