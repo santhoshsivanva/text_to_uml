@@ -6,7 +6,7 @@ import random
 from pyUML import Graph, UMLClass
 spacy.cli.download("en_core_web_sm")
 nlp = spacy.load("en_core_web_sm")
-
+nltk.download('wordnet')
 classes = set()
 
 def get_classes(text):
