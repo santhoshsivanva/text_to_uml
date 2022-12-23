@@ -67,7 +67,7 @@ def get_attributes(text):
         if token.tag_ == "POS":
             concept_attributes.add(doc[i+1].lemma_)
             classes.discard(doc[i+1].lemma_)
-            if doc[i-2] == "and":
+            if doc[i-2].text == "and":
                 concept_attributes.add(doc[i-3].lemma_)
                 classes.discard(doc[i-3].lemma_)
         # #A4
