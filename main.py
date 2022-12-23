@@ -5,7 +5,7 @@ import os
 # to be removed in production
 os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin'
 
-st.title("Text to UML Diagram Generator")
+st.title("Text to UML Diagram Generator using Rule-based approach")
 
 text = st.text_area("Write your specification here", height=200)
 btn = st.button("Generate")
