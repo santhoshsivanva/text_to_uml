@@ -158,10 +158,10 @@ def get_subject_object(text,verb,index):
     for i in range(index-1,-1,-1):
         if doc[i].dep_ in SUBJECTS and doc[i].head.text == verb: 
             if doc[i-1].dep_ == "compound" and doc[i-2].dep_ == "compound":
-                sub= doc[i-2].lemma_ +''+ doc[i-1].lemma +''+ doc[i].lemma
+                sub= doc[i-2].lemma_ +''+ doc[i-1].lemma_ +''+ doc[i].lemma_
                 break
             elif doc[i-1].dep_ == "compound":
-                sub= doc[i-1].lemma_ +''+ doc[i].lemma 
+                sub= doc[i-1].lemma_ +''+ doc[i].lemma_
                 break
             elif  doc[i].dep_ in SUBJECTS :
                 sub= doc[i].lemma_
@@ -170,7 +170,7 @@ def get_subject_object(text,verb,index):
     for i in range(index+1,len(doc)):    
         if doc[i].dep_ in OBJECTS and doc[i].head.text == verb:
             if doc[i-1].dep_ == "compound" and doc[i-2].dep_ == "compound":
-                obj= doc[i-2].lemma_ +''+ doc[i-1].lemma +''+ doc[i].lemma
+                obj= doc[i-2].lemma_ +''+ doc[i-1].lemma_ +''+ doc[i].lemma_
                 break
             elif doc[i-1].dep_ == "compound":
                 obj=doc[i-1].lemma_+'' + doc[i].lemma_
@@ -186,10 +186,10 @@ def get_subject_object(text,verb,index):
                 if doc[index-i-1].dep_ != "compound":
                     obj=doc[index-i].lemma_
                 else :
-                    obj=doc[index-i-1].lemma_ +''+doc[index-i].lemma
+                    obj=doc[index-i-1].lemma_ +''+doc[index-i].lemma_
             elif doc[index-i].tag_ == 'MD':
                 if doc[index-i-2].dep == "compound":
-                    obj=doc[index-i-2].lemma_+''+doc[index-i-1].lemma
+                    obj=doc[index-i-2].lemma_+''+doc[index-i-1].lemma_
                 elif doc[index-i-1].pos_ in ['NOUN','PROPN']:
                     obj=doc[index-i-1].lemma_
     
@@ -199,12 +199,12 @@ def get_subject_object(text,verb,index):
                 if doc[index+i].dep_ != "compound":
                     sub=doc[index+i].lemma_
                 else :
-                    sub=doc[index+i].lemma_ +''+doc[index+i+1].lemma
+                    sub=doc[index+i].lemma_ +''+doc[index+i+1].lemma_
 
             elif doc[index+i].pos_ in ['DET','ADJ']:
                 if doc[index+i+1].pos_ in ['NOUN','PROPN'] :
                     if  doc[index+i+1].dep == "compound" :
-                        sub=doc[index+i+1].lemma_ +''+doc[index+i+2].lemma
+                        sub=doc[index+i+1].lemma_ +''+doc[index+i+2].lemma_
                     else :
                         sub=doc[index+i+1].lemma_
     # if we dont find object so we will take the pobj of the verb
